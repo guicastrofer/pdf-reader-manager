@@ -11,7 +11,7 @@ go.build
 *.test
 *.bench
 # Arquivos de documentação
-*.md
+
 *.rst
 # Arquivos de IDE
 *.iml
