@@ -13,66 +13,65 @@ import (
 
 func main() {
 	loadEnv()
-	result := readPdf()
-	filterValue(result)
+	readPdf()
+
 }
 
-func readPdf() string {
-	// Abre o arquivo PDF
+func readPdf() {
+	// Open PDF file.
 
 	pdfFile, err := os.Open(os.Getenv("PDF_PATH"))
 	if err != nil {
 		fmt.Println("Erro ao abrir o arquivo:", err)
-		return ""
+
 	}
 
-	// Cria um novo leitor de PDF
+	// Create a new reader of page.
 	reader, err := model.NewPdfReader(pdfFile)
 
 	if err != nil {
 		fmt.Println("Erro ao criar leitor de PDF:", err)
-		return ""
+
 	}
 
-	// Obtém o número de páginas
+	// Get number of pages
 	numPages, err := reader.GetNumPages()
 	if err != nil {
 		fmt.Println("Erro ao obter número de páginas:", err)
-		return ""
+
 	}
 
-	// Lê cada página
-	var alltext string
+	// Read each page
+
 	for i := 2; i <= numPages; i++ {
-		// Obtém a página atual
+		// Get main Page
 		page, err := reader.GetPage(i)
 		if err != nil {
 			fmt.Println("Erro ao obter página:", err)
 			continue
 		}
 
-		// Extrai o texto da página
+		//Get text from page.
 		text, err := page.GetContentStreams()
 		if err != nil {
 			fmt.Println("Erro ao extrair texto da página:", err)
 			continue
 		}
 
-		// Exibe o texto da página
+		// Show text
 		fmt.Println("Página", i, ":")
-		fmt.Println(text)
 
-		alltext = strings.Join(text, ", ")
+		filterValue(strings.Join(text, ", "))
 
 	}
-	return alltext
+
 }
 
 func filterValue(result string) {
 	re := regexp.MustCompile(`\([^)]+\)`)
 	matches := re.FindAllString(result, -1)
 
-	// Exibe itens extraídos
+	// Show extracted infos
 	for _, match := range matches {
 		fmt.Println(match[1 : len(match)-1]) // Remove parentheses
 	}
@@ -85,3 +84,12 @@ func loadEnv() {
 		log.Fatal("Erro ao carregar arquivo .env:", err)
 	}
 }
+
+//TODO: Find "Detalhamento da Fatura na leitura" and use this as a header.
+//Fields
+// Compra
+// Data
+// Descri��o
+// Parcela
+// R$
+// US$
