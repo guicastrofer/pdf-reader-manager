@@ -138,16 +138,3 @@ func haveCard(line string) bool {
 	}
 	return false
 }
-
-func sortCards(cards []Card) []Card {
-	currentCards := cards
-	countCards := 0
-	for _, card := range cards {
-		countCards++
-		if card.Name == "" {
-			previousCard := currentCards[countCards-1]
-			card.Name = previousCard.Name
-		}
-	}
-	return cards
-}
