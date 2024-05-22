@@ -12,6 +12,13 @@ import (
 	"github.com/unidoc/unipdf/v3/model"
 )
 
+type Card struct {
+	Date  string
+	Store string
+	Value string
+	Name  string
+}
+
 func main() {
 	loadEnv()
 	readPdf()
@@ -65,17 +72,19 @@ func readPdf() {
 			continue
 		}
 
-		result := filter(lines)
-		fmt.Println(result)
+		filter(lines)
 
 	}
 }
 
-func filter(lines []string) []string {
+func filter(lines []string) {
+	cards := []Card{}
+	card := Card{}
+	name := ""
+
 	regexData := regexp.MustCompile(`^\d{2}/\d{2}$`) // Format DD/MM
 	arrayCount := 0
 
-	catchedLines := []string{}
 	for _, line := range lines {
 		var buffer bytes.Buffer
 
@@ -94,7 +103,7 @@ func filter(lines []string) []string {
 			arrayCount++
 
 			if haveCard(line) {
-				fmt.Println(line)
+				name = line
 			}
 
 			if regexData.MatchString(line) {
@@ -102,16 +111,20 @@ func filter(lines []string) []string {
 
 				store := array[position]
 				value := array[position+1]
-				fmt.Println(store)
-				fmt.Println(value)
-				fmt.Println(line)
+				card.Store = store
+				card.Value = value
+				card.Date = line
+				card.Name = name
+				cards = append(cards, card)
 
 			}
 		}
 
-	}
+		for _, card := range cards {
+			fmt.Printf("Card Details:\n  Date:  %s\n  Store: %s\n  Value: %s\n  Name:  %s\n", card.Date, card.Store, card.Value, card.Name)
+		}
 
-	return catchedLines
+	}
 
 }
 
@@ -126,12 +139,3 @@ func haveCard(line string) bool {
 	}
 	return false
 }
-
-//TODO: Find "Detalhamento da Fatura na leitura" and use this as a header.
-//Fields
-// Compra
-// Data
-// Descri��o
-// Parcela
-// R$
-// US$
