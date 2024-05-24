@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -17,6 +19,13 @@ type Card struct {
 	Store string
 	Value string
 	Name  string
+}
+
+type RequestData struct {
+	Date  string `json:"date"`
+	Store string `json:"store"`
+	Value string `json:"value"`
+	Name  string `json:"name"`
 }
 
 func main() {
@@ -123,6 +132,8 @@ func readPdf() {
 
 	for _, currentCard := range cards {
 		fmt.Printf("Card Details:\n  Date:  %s\n  Store: %s\n  Value: %s\n  Name:  %s\n", currentCard.Date, currentCard.Store, currentCard.Value, currentCard.Name)
+		requestData := convertCardToRequestData(currentCard)
+		makePostRequest(requestData)
 	}
 
 }
@@ -137,4 +148,36 @@ func haveCard(line string) bool {
 		}
 	}
 	return false
+}
+
+func makePostRequest(data RequestData) (*http.Response, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", os.Getenv("SHEET_DB_URL"), bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(os.Getenv("LOGIN"), os.Getenv("PASSWORD"))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Erro ao chamar API", err)
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func convertCardToRequestData(card Card) RequestData {
+	return RequestData{
+		Date:  card.Date,
+		Store: card.Store,
+		Value: card.Value,
+		Name:  card.Name,
+	}
 }
